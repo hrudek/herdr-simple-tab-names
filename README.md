@@ -50,7 +50,8 @@ herdr plugin uninstall herdr-simple-tab-names
 ```
 
 There is no build step, settings file, or background daemon. The action
-renumbers every tab in the focused workspace, reads each tab's foreground
+renumbers every tab in every workspace, so tabs also update while you work
+through another client such as a phone, reads each tab's foreground
 process group, and avoids unnecessary renames. As in tmux, the process-group
 leader determines the name;
 for example, a command run through `sudo` is normally shown as `sudo`. The shell

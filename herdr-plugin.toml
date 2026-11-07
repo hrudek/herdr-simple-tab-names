@@ -1,12 +1,12 @@
 id = "herdr-simple-tab-names"
 name = "Herdr Simple Tab Names"
-version = "0.3.0"
+version = "0.3.1"
 min_herdr_version = "0.9.1"
 description = "Name tabs after the foreground process-group leader or the running pi session"
 platforms = ["linux", "macos"]
 
 [[actions]]
 id = "tick"
-title = "Update the focused tab name"
+title = "Update tab names in all workspaces"
 contexts = ["global"]
 command = ["bash", "rename-tab.sh"]

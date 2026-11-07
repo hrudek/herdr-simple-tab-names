@@ -2,12 +2,10 @@
 set -euo pipefail
 
 herdr="${HERDR_BIN_PATH:-herdr}"
-workspace_id="${HERDR_WORKSPACE_ID:-}"
 focused_pane_id="${HERDR_PANE_ID:-}"
 focused_tab_id="${HERDR_TAB_ID:-}"
 state_dir="${HERDR_PLUGIN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/herdr-simple-tab-names}"
 
-[[ -n "$workspace_id" ]] || exit 0
 mkdir -p "$state_dir"
 
 strip_tab_prefix() {
@@ -47,8 +45,10 @@ pi_session_name() {
   printf '%s' "$rest"
 }
 
-tabs="$("$herdr" tab list --workspace "$workspace_id")"
-panes="$("$herdr" pane list --workspace "$workspace_id")"
+# Cover every workspace, not only the one focused in the desktop client, so
+# tabs also update while working through another client such as a phone.
+tabs="$("$herdr" tab list)"
+panes="$("$herdr" pane list)"
 
 while IFS=$'\t' read -r number tab_id current_name; do
   pane_id="$(jq -r --arg tab_id "$tab_id" '
@@ -132,8 +132,12 @@ while IFS=$'\t' read -r number tab_id current_name; do
     '{last_name: $last_name, custom_name: $custom_name}' >"$tmp_file"
   mv "$tmp_file" "$state_file"
 done < <(jq -r '
+  # Number tabs by their position within their own workspace.
   .result.tabs
+  | to_entries
+  | group_by(.value.workspace_id)[]
+  | sort_by(.key)
   | to_entries[]
-  | [(.key + 1), .value.tab_id, .value.label]
+  | [(.key + 1), .value.value.tab_id, .value.value.label]
   | @tsv
 ' <<<"$tabs")
