@@ -56,6 +56,13 @@ leader determines the name;
 for example, a command run through `sudo` is normally shown as `sudo`. The shell
 name is used when no foreground process-group leader can be determined.
 
+While [pi](https://github.com/earendil-works/pi) runs in the foreground and
+its session has a name, the tab shows that name instead of `pi`, for example
+`2:OAuth`. pi writes the name into the terminal title (`π - <name> - <cwd>`),
+which Herdr already reports per pane, so no extra calls or state are needed.
+When pi exits, the tab returns to the process name. Session names come from
+`/name`, `pi --name`, or an extension that names sessions automatically.
+
 A manual rename is preserved while its numeric prefix continues to follow the
 tab's position. For example, renaming a tab to `server` produces `2:server`.
 To return that tab to automatic process naming, rename it to an empty string,

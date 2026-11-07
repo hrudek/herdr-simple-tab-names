@@ -30,6 +30,23 @@ process_name() {
   printf '%s' "$name"
 }
 
+# pi writes its session name into the terminal title as
+# "π - <session name> - <cwd>" (just "π - <cwd>" while unnamed). Print the
+# session name, or fail when the title carries none.
+pi_session_name() {
+  local title="$1" cwd_name="$2" rest
+
+  rest="${title#π - }"
+  [[ "$rest" != "$title" && "$rest" == *" - "* ]] || return 1
+  if [[ -n "$cwd_name" && "$rest" == *" - $cwd_name" ]]; then
+    rest="${rest%" - $cwd_name"}"
+  else
+    rest="${rest% - *}"
+  fi
+  [[ -n "${rest//[[:space:]]/}" ]] || return 1
+  printf '%s' "$rest"
+}
+
 tabs="$("$herdr" tab list --workspace "$workspace_id")"
 panes="$("$herdr" pane list --workspace "$workspace_id")"
 
@@ -71,6 +88,18 @@ while IFS=$'\t' read -r number tab_id current_name; do
   fi
 
   [[ -n "$name" ]] || continue
+
+  # While pi runs in the foreground, show its session name instead.
+  if [[ "$name" == "pi" ]]; then
+    IFS=$'\t' read -r terminal_title pane_cwd < <(jq -r --arg pane_id "$pane_id" '
+      [.result.panes[] | select(.pane_id == $pane_id)][0]
+      | [(.terminal_title_stripped // .terminal_title // ""), (.foreground_cwd // .cwd // "")]
+      | @tsv
+    ' <<<"$panes")
+    if session_name="$(pi_session_name "$terminal_title" "${pane_cwd##*/}")"; then
+      name="$session_name"
+    fi
+  fi
 
   state_file="$state_dir/${tab_id//:/_}.json"
   custom_name=""
